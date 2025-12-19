@@ -81,7 +81,24 @@ function injectExtensionUI(aside, history) {
   archiveBtn.className = "flex text-center items-center p-2 h-6 text-sm bg-yellow-500 text-black rounded-md hover:bg-yellow-400";
   deleteBtn.className = "flex text-center items-center p-2 h-6 text-sm bg-red-500 text-white rounded-md hover:bg-red-600";
 
+  const selectionText = document.createTextNode(extensionState.selectedNum + " conversation(s) selected");
+  const archiveText = document.createTextNode("Archive");
+  const deleteText = document.createTextNode("Delete");
 
+  screen.appendChild(selectionText);
+  archiveBtn.appendChild(archiveText);
+  deleteBtn.appendChild(deleteText);
+  wrapper.appendChild(archiveBtn);
+  wrapper.appendChild(deleteBtn);
+  board.appendChild(selectAllWrapper);
+  board.appendChild(screen);
+  board.appendChild(wrapper);
+
+  div.appendChild(board);
+
+  aside.before(div);
+  extensionState.extensionUI = div;
+  extensionState.isInjected = true;
 
 
 
