@@ -49,6 +49,17 @@ function injectExtensionUI(aside, history) {
 
   const text = document.createTextNode("GPT history cleaner");
 
+  const toggleExtension = document.createElement("input");
+  toggleExtension.type = "checkbox";
+  toggleExtension.style.marginRight = "8px";
+
+  child.appendChild(img);
+  child.appendChild(text);
+  child.appendChild(toggleExtension);
+  child.className = "flex gap-2 items-center";
+  div.className = "group hoverable flex gap-2 flex-col items-center justify-around";
+  div.appendChild(child);
+
 
 
 
