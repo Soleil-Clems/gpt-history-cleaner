@@ -408,3 +408,35 @@ function getConvId(url) {
   return id;
 }
 
+function customFetch(action, id) {
+  console.log(`[GPT History Cleaner] customFetch called with action=${action}, id=${id} (type: ${typeof id})`);
+  
+  if (!id || typeof id !== 'string') {
+    return Promise.reject(new Error(`Invalid ID: ${id} (type: ${typeof id})`));
+  }
+  
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage(
+      {
+        type: "GPT_HISTORY_ACTION",
+        action: action,
+        id: id
+      },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          console.error("Extension error:", chrome.runtime.lastError);
+          reject(chrome.runtime.lastError);
+          return;
+        }
+
+        if (response && response.success) {
+          console.log(`${action} success for ${id}`);
+          resolve();
+        } else {
+          console.error(`${action} failed:`, response ? response.error : "No response");
+          reject(new Error(response ? response.error : "Unknown error"));
+        }
+      }
+    );
+  });
+}
