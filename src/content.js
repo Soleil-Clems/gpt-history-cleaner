@@ -318,6 +318,13 @@ function injectExtensionUI(aside, history) {
     conv.addEventListener("click", handleConversationClick);
   }
 
+  function removeCheckboxFromConversation(conv) {
+    const checkbox = conv.querySelector("input[type='checkbox']");
+    if (checkbox) {
+      conv.removeChild(checkbox);
+    }
+    conv.removeEventListener("click", handleConversationClick);
+  }
 }
 
 
