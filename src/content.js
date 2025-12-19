@@ -327,7 +327,69 @@ function injectExtensionUI(aside, history) {
   }
 }
 
+function addCheckboxesToNewConversations(history) {
+  const conversations = history.querySelectorAll("nav a");
+  const screen = document.querySelector("p.text-xs.text-gray-500");
+  
+  conversations.forEach(conv => {
+    if (!conv.querySelector("input[type='checkbox']")) {
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.style.marginRight = "8px";
+      
+      const href = conv.getAttribute('href');
+      const id = getConvId(href);
+      
+      if (extensionState.checkAll && id) {
+        checkbox.checked = true;
+        if (!extensionState.convList.includes(id)) {
+          extensionState.convList.push(id);
+          extensionState.selectedNum = extensionState.convList.length;
+          if (screen) {
+            screen.textContent = extensionState.selectedNum + " conversation(s) selected";
+          }
+        }
+      } else if (id && extensionState.convList.includes(id)) {
+        checkbox.checked = true;
+      }
+      
+      conv.prepend(checkbox);
+      
+      conv.addEventListener("click", (e) => {
+        if (!extensionState.toggleChecked) return;
+        e.preventDefault();
+        
+        const input = conv.querySelector("input[type='checkbox']");
+        if (!input) return;
 
+        input.checked = !input.checked;
+        const convHref = conv.getAttribute('href');
+        const convId = getConvId(convHref);
+        
+        if (!convId) return;
+
+        if (input.checked) {
+          if (!extensionState.convList.includes(convId)) {
+            extensionState.convList.push(convId);
+          }
+        } else {
+          const index = extensionState.convList.indexOf(convId);
+          if (index > -1) {
+            extensionState.convList.splice(index, 1);
+          }
+        }
+
+        console.log("Selected conversations:", extensionState.convList);
+        extensionState.selectedNum = extensionState.convList.length;
+        
+        const screenEl = document.querySelector("p.text-xs.text-gray-500");
+        if (screenEl) {
+          screenEl.textContent = extensionState.selectedNum + " conversation(s) selected";
+        }
+      });
+    }
+  });
+}
 
 
 
