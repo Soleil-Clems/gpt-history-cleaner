@@ -391,5 +391,20 @@ function addCheckboxesToNewConversations(history) {
   });
 }
 
-
+function getConvId(url) {
+  if (!url || typeof url !== 'string') {
+    console.warn('[GPT History Cleaner] Invalid URL type:', typeof url, url);
+    return null;
+  }
+  
+  const parts = url.split("/");
+  const id = parts[parts.length - 1];
+  
+  if (!id || id === '' || id.includes('[object') || id.includes('Promise') || id === 'undefined' || id === 'null') {
+    console.warn('[GPT History Cleaner] Invalid conversation ID extracted:', id, 'from URL:', url);
+    return null;
+  }
+  
+  return id;
+}
 
