@@ -51,6 +51,7 @@ function injectExtensionUI(aside, history) {
 
   const toggleExtension = document.createElement("input");
   toggleExtension.type = "checkbox";
+  toggleExtension.name = "toggle";
   toggleExtension.style.marginRight = "8px";
 
   child.appendChild(img);
@@ -68,6 +69,7 @@ function injectExtensionUI(aside, history) {
   selectAllWrapper.style.display = "none";
   const selectAll = document.createElement("input");
   selectAll.type = "checkbox";
+  selectAll.name = "select_all";
   const selectAllText = document.createTextNode("Select All");
   selectAllWrapper.appendChild(selectAll);
   selectAllWrapper.appendChild(selectAllText);
@@ -304,6 +306,7 @@ function injectExtensionUI(aside, history) {
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
+    checkbox.name = "conv";
     checkbox.style.marginRight = "8px";
 
     const href = conv.getAttribute('href');
@@ -339,6 +342,7 @@ function addCheckboxesToNewConversations(history) {
     if (!conv.querySelector("input[type='checkbox']")) {
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
+      checkbox.name = "conv";
       checkbox.style.marginRight = "8px";
 
       const href = conv.getAttribute('href');
