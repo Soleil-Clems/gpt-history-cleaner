@@ -128,13 +128,14 @@ function injectExtensionUI(aside, history) {
           await customFetch("delete", id);
           successCount++;
           await new Promise(resolve => setTimeout(resolve, 200));
+
+
         } catch (error) {
           console.error(`Failed to delete ${id}:`, error);
           failCount++;
         }
       }
 
-      alert(`✓ ${successCount} deleted${failCount > 0 ? `, ${failCount} failed` : ''}`);
 
       extensionState.convList = [];
       extensionState.selectedNum = 0;
@@ -146,6 +147,8 @@ function injectExtensionUI(aside, history) {
     } finally {
       deleteBtn.disabled = false;
       deleteBtn.textContent = originalText;
+
+      window.location.reload();
     }
   });
 
@@ -299,7 +302,7 @@ function injectExtensionUI(aside, history) {
     checkbox.type = "checkbox";
     checkbox.name = "conv";
     checkbox.style.marginRight = "8px";
-    checkbox.style.pointerEvents= "none";
+    checkbox.style.pointerEvents = "none";
 
     const href = conv.getAttribute('href');
     const id = getConvId(href);
