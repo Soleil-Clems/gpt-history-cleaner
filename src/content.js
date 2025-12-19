@@ -295,7 +295,28 @@ function injectExtensionUI(aside, history) {
     screen.textContent = extensionState.selectedNum + " conversation(s) selected";
   }
 
+  function addCheckboxToConversation(conv) {
+    if (conv.querySelector("input[type='checkbox']")) return;
 
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.style.marginRight = "8px";
+    
+    const href = conv.getAttribute('href');
+    const id = getConvId(href);
+    
+    if (extensionState.checkAll && id) {
+      checkbox.checked = true;
+      if (!extensionState.convList.includes(id)) {
+        extensionState.convList.push(id);
+      }
+    } else if (id && extensionState.convList.includes(id)) {
+      checkbox.checked = true;
+    }
+    
+    conv.prepend(checkbox);
+    conv.addEventListener("click", handleConversationClick);
+  }
 
 }
 
