@@ -72,6 +72,15 @@ function injectExtensionUI(aside, history) {
   selectAllWrapper.appendChild(selectAll);
   selectAllWrapper.appendChild(selectAllText);
   
+  const wrapper = document.createElement("div");
+  wrapper.className = "flex gap-2 justify-around p-1 h-[50px]";
+  const screen = document.createElement("p");
+  screen.className = "text-xs text-gray-500";
+  const archiveBtn = document.createElement("button");
+  const deleteBtn = document.createElement("button");
+  archiveBtn.className = "flex text-center items-center p-2 h-6 text-sm bg-yellow-500 text-black rounded-md hover:bg-yellow-400";
+  deleteBtn.className = "flex text-center items-center p-2 h-6 text-sm bg-red-500 text-white rounded-md hover:bg-red-600";
+
 
 
 
