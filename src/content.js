@@ -308,6 +308,7 @@ function injectExtensionUI(aside, history) {
     checkbox.type = "checkbox";
     checkbox.name = "conv";
     checkbox.style.marginRight = "8px";
+    checkbox.style.pointerEvents= "none";
 
     const href = conv.getAttribute('href');
     const id = getConvId(href);
@@ -320,6 +321,7 @@ function injectExtensionUI(aside, history) {
     } else if (id && extensionState.convList.includes(id)) {
       checkbox.checked = true;
     }
+
 
     conv.prepend(checkbox);
     conv.addEventListener("click", handleConversationClick);
