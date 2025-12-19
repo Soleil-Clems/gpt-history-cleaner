@@ -204,6 +204,27 @@ function injectExtensionUI(aside, history) {
     }
   });
 
+  toggleExtension.addEventListener("change", () => {
+    const conversations = history.querySelectorAll("nav a");
+    extensionState.toggleChecked = toggleExtension.checked;
+    
+    if (toggleExtension.checked) {
+      selectAllWrapper.style.display = "flex";
+      conversations.forEach(conv => {
+        addCheckboxToConversation(conv);
+      });
+    } else {
+      selectAllWrapper.style.display = "none";
+      selectAll.checked = false;
+      extensionState.checkAll = false;
+      conversations.forEach(conv => {
+        removeCheckboxFromConversation(conv);
+      });
+      extensionState.convList = [];
+      extensionState.selectedNum = 0;
+      screen.textContent = "0 conversation(s) selected";
+    }
+  });
 
 
 
