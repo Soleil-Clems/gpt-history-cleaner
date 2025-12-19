@@ -38,6 +38,19 @@ function injectExtensionUI(aside, history) {
     return;
   }
 
+  const div = document.createElement("div");
+  const child = document.createElement("div");
+  div.setAttribute("tabindex", "0");
+
+  const img = document.createElement("img");
+  img.src = chrome.runtime.getURL("logo.png");
+  img.style.width = "20px";
+  img.style.height = "20px";
+
+  const text = document.createTextNode("GPT history cleaner");
+
+
+
 
 
 
