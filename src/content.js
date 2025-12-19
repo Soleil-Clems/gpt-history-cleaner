@@ -100,6 +100,57 @@ function injectExtensionUI(aside, history) {
   extensionState.extensionUI = div;
   extensionState.isInjected = true;
 
+  deleteBtn.addEventListener("click", async () => {
+    if (extensionState.convList.length === 0) {
+      return;
+    }
+
+    const validIds = extensionState.convList.filter(id => id && typeof id === 'string' && !id.includes('Promise'));
+    
+    if (validIds.length === 0) {
+      return;
+    }
+
+    const confirmed = confirm(
+      `Delete ${validIds.length} conversation(s)? This cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    deleteBtn.disabled = true;
+    const originalText = deleteBtn.textContent;
+    deleteBtn.textContent = "Deleting...";
+
+    try {
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const id of validIds) {
+        try {
+          await customFetch("delete", id);
+          successCount++;
+          await new Promise(resolve => setTimeout(resolve, 200));
+        } catch (error) {
+          console.error(`Failed to delete ${id}:`, error);
+          failCount++;
+        }
+      }
+
+      alert(`✓ ${successCount} deleted${failCount > 0 ? `, ${failCount} failed` : ''}`);
+
+      extensionState.convList = [];
+      extensionState.selectedNum = 0;
+      screen.textContent = "0 conversation(s) selected";
+
+    } catch (error) {
+      console.error("Delete operation failed:", error);
+      alert("Operation failed. Check console for details.");
+    } finally {
+      deleteBtn.disabled = false;
+      deleteBtn.textContent = originalText;
+    }
+  });
+
 
 
 
