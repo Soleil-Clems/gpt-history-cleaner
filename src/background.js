@@ -76,7 +76,7 @@ async function handleAction(action, conversationId, tabId) {
         };
 
         const response = await fetch(url, {
-          method: "PATCH",
+          method: "PATCH" ,
           headers: headers,
           body: JSON.stringify(body),
           credentials: "include"

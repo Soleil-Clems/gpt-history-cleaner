@@ -51,6 +51,7 @@ function injectExtensionUI(aside, history) {
 
   const toggleExtension = document.createElement("input");
   toggleExtension.type = "checkbox";
+  toggleExtension.name = "toggle";
   toggleExtension.style.marginRight = "8px";
 
   child.appendChild(img);
@@ -61,13 +62,14 @@ function injectExtensionUI(aside, history) {
   div.appendChild(child);
 
   const board = document.createElement("div");
-  board.className = "flex flex-col h-full text-sm";
+  board.className = "hidden flex-col h-full text-sm";
 
   const selectAllWrapper = document.createElement("div");
   selectAllWrapper.className = "flex items-center gap-2 p-1";
   selectAllWrapper.style.display = "none";
   const selectAll = document.createElement("input");
   selectAll.type = "checkbox";
+  selectAll.name = "select_all";
   const selectAllText = document.createTextNode("Select All");
   selectAllWrapper.appendChild(selectAll);
   selectAllWrapper.appendChild(selectAllText);
@@ -111,11 +113,7 @@ function injectExtensionUI(aside, history) {
       return;
     }
 
-    const confirmed = confirm(
-      `Delete ${validIds.length} conversation(s)? This cannot be undone.`
-    );
-
-    if (!confirmed) return;
+    // confirm
 
     deleteBtn.disabled = true;
     const originalText = deleteBtn.textContent;
@@ -130,13 +128,14 @@ function injectExtensionUI(aside, history) {
           await customFetch("delete", id);
           successCount++;
           await new Promise(resolve => setTimeout(resolve, 200));
+
+
         } catch (error) {
           console.error(`Failed to delete ${id}:`, error);
           failCount++;
         }
       }
 
-      alert(`✓ ${successCount} deleted${failCount > 0 ? `, ${failCount} failed` : ''}`);
 
       extensionState.convList = [];
       extensionState.selectedNum = 0;
@@ -148,6 +147,8 @@ function injectExtensionUI(aside, history) {
     } finally {
       deleteBtn.disabled = false;
       deleteBtn.textContent = originalText;
+
+      window.location.reload();
     }
   });
 
@@ -159,15 +160,10 @@ function injectExtensionUI(aside, history) {
     const validIds = extensionState.convList.filter(id => id && typeof id === 'string' && !id.includes('Promise'));
 
     if (validIds.length === 0) {
-      alert("No valid conversations selected!");
       return;
     }
 
-    const confirmed = confirm(
-      `Archive ${validIds.length} conversation(s)?`
-    );
-
-    if (!confirmed) return;
+    // confirm
 
     archiveBtn.disabled = true;
     const originalText = archiveBtn.textContent;
@@ -188,7 +184,7 @@ function injectExtensionUI(aside, history) {
         }
       }
 
-      alert(`✓ ${successCount} archived${failCount > 0 ? `, ${failCount} failed` : ''}`);
+      // alert(`✓ ${successCount} archived${failCount > 0 ? `, ${failCount} failed` : ''}`);
 
       extensionState.convList = [];
       extensionState.selectedNum = 0;
@@ -210,6 +206,8 @@ function injectExtensionUI(aside, history) {
 
     if (toggleExtension.checked) {
       selectAllWrapper.style.display = "flex";
+      board.classList.remove("hidden")
+      board.classList.add("flex")
       conversations.forEach(conv => {
         addCheckboxToConversation(conv);
       });
@@ -223,6 +221,8 @@ function injectExtensionUI(aside, history) {
       extensionState.convList = [];
       extensionState.selectedNum = 0;
       screen.textContent = "0 conversation(s) selected";
+      board.classList.remove("flex")
+      board.classList.add("hidden")
     }
   });
 
@@ -300,7 +300,9 @@ function injectExtensionUI(aside, history) {
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
+    checkbox.name = "conv";
     checkbox.style.marginRight = "8px";
+    checkbox.style.pointerEvents = "none";
 
     const href = conv.getAttribute('href');
     const id = getConvId(href);
@@ -313,6 +315,7 @@ function injectExtensionUI(aside, history) {
     } else if (id && extensionState.convList.includes(id)) {
       checkbox.checked = true;
     }
+
 
     conv.prepend(checkbox);
     conv.addEventListener("click", handleConversationClick);
@@ -335,6 +338,7 @@ function addCheckboxesToNewConversations(history) {
     if (!conv.querySelector("input[type='checkbox']")) {
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
+      checkbox.name = "conv";
       checkbox.style.marginRight = "8px";
 
       const href = conv.getAttribute('href');
