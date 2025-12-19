@@ -226,6 +226,43 @@ function injectExtensionUI(aside, history) {
     }
   });
 
+  selectAll.addEventListener("change", () => {
+    if (!extensionState.toggleChecked) return;
+    
+    extensionState.checkAll = selectAll.checked;
+    const conversations = history.querySelectorAll("nav a");
+    
+    if (selectAll.checked) {
+      extensionState.convList = [];
+      
+      conversations.forEach(conv => {
+        const checkbox = conv.querySelector("input[type='checkbox']");
+        if (checkbox) {
+          checkbox.checked = true;
+          const href = conv.getAttribute('href');
+          const id = getConvId(href);
+          
+          if (id && !extensionState.convList.includes(id)) {
+            extensionState.convList.push(id);
+          }
+        }
+      });
+    } else {
+      extensionState.convList = [];
+      
+      conversations.forEach(conv => {
+        const checkbox = conv.querySelector("input[type='checkbox']");
+        if (checkbox) {
+          checkbox.checked = false;
+        }
+      });
+    }
+    
+    extensionState.selectedNum = extensionState.convList.length;
+    screen.textContent = extensionState.selectedNum + " conversation(s) selected";
+    console.log("Select All:", selectAll.checked, "Valid IDs:", extensionState.convList);
+  });
+
 
 
 
