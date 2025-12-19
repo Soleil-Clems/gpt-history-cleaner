@@ -15,7 +15,7 @@ function observer() {
   const observer = new MutationObserver(() => {
     const aside = document.querySelector("nav aside");
     const history = document.querySelector("#history");
-    
+
     if (!history || !aside) return;
 
     if (!extensionState.isInjected || !document.body.contains(extensionState.extensionUI)) {
@@ -62,7 +62,7 @@ function injectExtensionUI(aside, history) {
 
   const board = document.createElement("div");
   board.className = "flex flex-col h-full text-sm";
-  
+
   const selectAllWrapper = document.createElement("div");
   selectAllWrapper.className = "flex items-center gap-2 p-1";
   selectAllWrapper.style.display = "none";
@@ -71,7 +71,7 @@ function injectExtensionUI(aside, history) {
   const selectAllText = document.createTextNode("Select All");
   selectAllWrapper.appendChild(selectAll);
   selectAllWrapper.appendChild(selectAllText);
-  
+
   const wrapper = document.createElement("div");
   wrapper.className = "flex gap-2 justify-around p-1 h-[50px]";
   const screen = document.createElement("p");
@@ -106,7 +106,7 @@ function injectExtensionUI(aside, history) {
     }
 
     const validIds = extensionState.convList.filter(id => id && typeof id === 'string' && !id.includes('Promise'));
-    
+
     if (validIds.length === 0) {
       return;
     }
@@ -157,7 +157,7 @@ function injectExtensionUI(aside, history) {
     }
 
     const validIds = extensionState.convList.filter(id => id && typeof id === 'string' && !id.includes('Promise'));
-    
+
     if (validIds.length === 0) {
       alert("No valid conversations selected!");
       return;
@@ -207,7 +207,7 @@ function injectExtensionUI(aside, history) {
   toggleExtension.addEventListener("change", () => {
     const conversations = history.querySelectorAll("nav a");
     extensionState.toggleChecked = toggleExtension.checked;
-    
+
     if (toggleExtension.checked) {
       selectAllWrapper.style.display = "flex";
       conversations.forEach(conv => {
@@ -228,20 +228,20 @@ function injectExtensionUI(aside, history) {
 
   selectAll.addEventListener("change", () => {
     if (!extensionState.toggleChecked) return;
-    
+
     extensionState.checkAll = selectAll.checked;
     const conversations = history.querySelectorAll("nav a");
-    
+
     if (selectAll.checked) {
       extensionState.convList = [];
-      
+
       conversations.forEach(conv => {
         const checkbox = conv.querySelector("input[type='checkbox']");
         if (checkbox) {
           checkbox.checked = true;
           const href = conv.getAttribute('href');
           const id = getConvId(href);
-          
+
           if (id && !extensionState.convList.includes(id)) {
             extensionState.convList.push(id);
           }
@@ -249,7 +249,7 @@ function injectExtensionUI(aside, history) {
       });
     } else {
       extensionState.convList = [];
-      
+
       conversations.forEach(conv => {
         const checkbox = conv.querySelector("input[type='checkbox']");
         if (checkbox) {
@@ -257,7 +257,7 @@ function injectExtensionUI(aside, history) {
         }
       });
     }
-    
+
     extensionState.selectedNum = extensionState.convList.length;
     screen.textContent = extensionState.selectedNum + " conversation(s) selected";
     console.log("Select All:", selectAll.checked, "Valid IDs:", extensionState.convList);
@@ -276,7 +276,7 @@ function injectExtensionUI(aside, history) {
 
     const href = conv.getAttribute('href');
     const id = getConvId(href);
-    
+
     if (!id) return;
 
     if (input.checked) {
@@ -301,10 +301,10 @@ function injectExtensionUI(aside, history) {
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.style.marginRight = "8px";
-    
+
     const href = conv.getAttribute('href');
     const id = getConvId(href);
-    
+
     if (extensionState.checkAll && id) {
       checkbox.checked = true;
       if (!extensionState.convList.includes(id)) {
@@ -313,7 +313,7 @@ function injectExtensionUI(aside, history) {
     } else if (id && extensionState.convList.includes(id)) {
       checkbox.checked = true;
     }
-    
+
     conv.prepend(checkbox);
     conv.addEventListener("click", handleConversationClick);
   }
@@ -330,16 +330,16 @@ function injectExtensionUI(aside, history) {
 function addCheckboxesToNewConversations(history) {
   const conversations = history.querySelectorAll("nav a");
   const screen = document.querySelector("p.text-xs.text-gray-500");
-  
+
   conversations.forEach(conv => {
     if (!conv.querySelector("input[type='checkbox']")) {
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.style.marginRight = "8px";
-      
+
       const href = conv.getAttribute('href');
       const id = getConvId(href);
-      
+
       if (extensionState.checkAll && id) {
         checkbox.checked = true;
         if (!extensionState.convList.includes(id)) {
@@ -352,20 +352,20 @@ function addCheckboxesToNewConversations(history) {
       } else if (id && extensionState.convList.includes(id)) {
         checkbox.checked = true;
       }
-      
+
       conv.prepend(checkbox);
-      
+
       conv.addEventListener("click", (e) => {
         if (!extensionState.toggleChecked) return;
         e.preventDefault();
-        
+
         const input = conv.querySelector("input[type='checkbox']");
         if (!input) return;
 
         input.checked = !input.checked;
         const convHref = conv.getAttribute('href');
         const convId = getConvId(convHref);
-        
+
         if (!convId) return;
 
         if (input.checked) {
@@ -381,7 +381,7 @@ function addCheckboxesToNewConversations(history) {
 
         console.log("Selected conversations:", extensionState.convList);
         extensionState.selectedNum = extensionState.convList.length;
-        
+
         const screenEl = document.querySelector("p.text-xs.text-gray-500");
         if (screenEl) {
           screenEl.textContent = extensionState.selectedNum + " conversation(s) selected";
@@ -396,25 +396,25 @@ function getConvId(url) {
     console.warn('[GPT History Cleaner] Invalid URL type:', typeof url, url);
     return null;
   }
-  
+
   const parts = url.split("/");
   const id = parts[parts.length - 1];
-  
+
   if (!id || id === '' || id.includes('[object') || id.includes('Promise') || id === 'undefined' || id === 'null') {
     console.warn('[GPT History Cleaner] Invalid conversation ID extracted:', id, 'from URL:', url);
     return null;
   }
-  
+
   return id;
 }
 
 function customFetch(action, id) {
   console.log(`[GPT History Cleaner] customFetch called with action=${action}, id=${id} (type: ${typeof id})`);
-  
+
   if (!id || typeof id !== 'string') {
     return Promise.reject(new Error(`Invalid ID: ${id} (type: ${typeof id})`));
   }
-  
+
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage(
       {
