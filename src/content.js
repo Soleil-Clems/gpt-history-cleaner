@@ -16,9 +16,15 @@ function observer() {
     const aside = document.querySelector("nav aside");
     const history = document.querySelector("#history");
     
+    if (!history || !aside) return;
 
+    if (!extensionState.isInjected || !document.body.contains(extensionState.extensionUI)) {
+      injectExtensionUI(aside, history);
+    }
 
-  
+    if (extensionState.toggleChecked) {
+      addCheckboxesToNewConversations(history);
+    }
   });
 
   observer.observe(document.body, {
@@ -27,6 +33,16 @@ function observer() {
   });
 }
 
+function injectExtensionUI(aside, history) {
+  if (extensionState.extensionUI && document.body.contains(extensionState.extensionUI)) {
+    return;
+  }
+
+
+
+
+
+}
 
 
 
