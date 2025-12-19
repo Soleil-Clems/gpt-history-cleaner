@@ -61,7 +61,7 @@ function injectExtensionUI(aside, history) {
   div.appendChild(child);
 
   const board = document.createElement("div");
-  board.className = "flex flex-col h-full text-sm";
+  board.className = "hidden flex-col h-full text-sm";
 
   const selectAllWrapper = document.createElement("div");
   selectAllWrapper.className = "flex items-center gap-2 p-1";
@@ -210,6 +210,8 @@ function injectExtensionUI(aside, history) {
 
     if (toggleExtension.checked) {
       selectAllWrapper.style.display = "flex";
+      board.classList.remove("hidden")
+      board.classList.add("flex")
       conversations.forEach(conv => {
         addCheckboxToConversation(conv);
       });
@@ -223,6 +225,8 @@ function injectExtensionUI(aside, history) {
       extensionState.convList = [];
       extensionState.selectedNum = 0;
       screen.textContent = "0 conversation(s) selected";
+      board.classList.remove("flex")
+      board.classList.add("hidden")
     }
   });
 
