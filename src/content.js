@@ -113,11 +113,7 @@ function injectExtensionUI(aside, history) {
       return;
     }
 
-    const confirmed = confirm(
-      `Delete ${validIds.length} conversation(s)? This cannot be undone.`
-    );
-
-    if (!confirmed) return;
+    // confirm
 
     deleteBtn.disabled = true;
     const originalText = deleteBtn.textContent;
@@ -161,15 +157,10 @@ function injectExtensionUI(aside, history) {
     const validIds = extensionState.convList.filter(id => id && typeof id === 'string' && !id.includes('Promise'));
 
     if (validIds.length === 0) {
-      alert("No valid conversations selected!");
       return;
     }
 
-    const confirmed = confirm(
-      `Archive ${validIds.length} conversation(s)?`
-    );
-
-    if (!confirmed) return;
+    // confirm
 
     archiveBtn.disabled = true;
     const originalText = archiveBtn.textContent;
@@ -190,7 +181,7 @@ function injectExtensionUI(aside, history) {
         }
       }
 
-      alert(`✓ ${successCount} archived${failCount > 0 ? `, ${failCount} failed` : ''}`);
+      // alert(`✓ ${successCount} archived${failCount > 0 ? `, ${failCount} failed` : ''}`);
 
       extensionState.convList = [];
       extensionState.selectedNum = 0;
