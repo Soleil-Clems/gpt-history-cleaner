@@ -151,6 +151,59 @@ function injectExtensionUI(aside, history) {
     }
   });
 
+  archiveBtn.addEventListener("click", async () => {
+    if (extensionState.convList.length === 0) {
+      return;
+    }
+
+    const validIds = extensionState.convList.filter(id => id && typeof id === 'string' && !id.includes('Promise'));
+    
+    if (validIds.length === 0) {
+      alert("No valid conversations selected!");
+      return;
+    }
+
+    const confirmed = confirm(
+      `Archive ${validIds.length} conversation(s)?`
+    );
+
+    if (!confirmed) return;
+
+    archiveBtn.disabled = true;
+    const originalText = archiveBtn.textContent;
+    archiveBtn.textContent = "Archiving...";
+
+    try {
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const id of validIds) {
+        try {
+          await customFetch("archive", id);
+          successCount++;
+          await new Promise(resolve => setTimeout(resolve, 200));
+        } catch (error) {
+          console.error(`Failed to archive ${id}:`, error);
+          failCount++;
+        }
+      }
+
+      alert(`✓ ${successCount} archived${failCount > 0 ? `, ${failCount} failed` : ''}`);
+
+      extensionState.convList = [];
+      extensionState.selectedNum = 0;
+      screen.textContent = "0 conversation(s) selected";
+      location.reload();
+
+    } catch (error) {
+      console.error("Archive operation failed:", error);
+      alert("Operation failed. Check console for details.");
+    } finally {
+      archiveBtn.disabled = false;
+      archiveBtn.textContent = originalText;
+    }
+  });
+
 
 
 
