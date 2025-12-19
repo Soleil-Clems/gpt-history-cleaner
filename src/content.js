@@ -60,6 +60,18 @@ function injectExtensionUI(aside, history) {
   div.className = "group hoverable flex gap-2 flex-col items-center justify-around";
   div.appendChild(child);
 
+  const board = document.createElement("div");
+  board.className = "flex flex-col h-full text-sm";
+  
+  const selectAllWrapper = document.createElement("div");
+  selectAllWrapper.className = "flex items-center gap-2 p-1";
+  selectAllWrapper.style.display = "none";
+  const selectAll = document.createElement("input");
+  selectAll.type = "checkbox";
+  const selectAllText = document.createTextNode("Select All");
+  selectAllWrapper.appendChild(selectAll);
+  selectAllWrapper.appendChild(selectAllText);
+  
 
 
 
