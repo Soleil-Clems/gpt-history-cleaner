@@ -48,7 +48,6 @@ async function performAction(action, id) {
         '5c97cf74-5c28-412c-91f9-66c10f5aedb4';
     };
 
-    // Fetch le token à chaque fois
     const response = await fetch('https://chatgpt.com/api/auth/session');
     if (!response.ok) {
       throw new Error('Failed to fetch session');
