@@ -44,8 +44,13 @@ function injectExtensionUI(aside, history) {
 
   const img = document.createElement("img");
   img.src = chrome.runtime.getURL("logo.png");
-  img.style.width = "20px";
-  img.style.height = "20px";
+  img.className="w-full h-full"
+  const imgParent = document.createElement("a");
+  imgParent.href="https://soleil-ouisol.fr/"
+  imgParent.alt="owner: Soleil OUISOL"
+  imgParent.target="_blank"
+  imgParent.className="w-8 h-8 rounded-full overflow-hidden object-cover cursor-pointer"
+
 
   const text = document.createTextNode("GPT history cleaner");
 
@@ -58,7 +63,8 @@ function injectExtensionUI(aside, history) {
   toggleExtension.name = "toggle";
   toggleExtension.style.marginRight = "8px";
 
-  child.appendChild(img);
+  imgParent.appendChild(img);
+  child.appendChild(imgParent);
   child.appendChild(text);
   label.appendChild(toggleExtension)
   label.appendChild(slider)
