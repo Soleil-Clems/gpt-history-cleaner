@@ -13,7 +13,7 @@ window.addEventListener("load", () => {
 
 function observer() {
   const observer = new MutationObserver(() => {
-    const aside = document.querySelector("nav aside");
+    const aside = document.querySelector("nav a[data-testid='create-new-chat-button']");
     const history = document.querySelector("#history");
 
     if (!history || !aside) return;
@@ -50,15 +50,32 @@ function injectExtensionUI(aside, history) {
   const text = document.createTextNode("GPT history cleaner");
 
   const toggleExtension = document.createElement("input");
+  const label = document.createElement("label");
+  const slider = document.createElement("span");
+  const knob = document.createElement("span");
+  slider.appendChild(knob);
   toggleExtension.type = "checkbox";
   toggleExtension.name = "toggle";
   toggleExtension.style.marginRight = "8px";
 
   child.appendChild(img);
   child.appendChild(text);
-  child.appendChild(toggleExtension);
+  label.appendChild(toggleExtension)
+  label.appendChild(slider)
+  child.appendChild(label);
+  label.className = "relative inline-block w-10 h-5";
+  toggleExtension.className = "peer absolute opacity-0 w-0 h-0"
+
+  knob.className =
+  "absolute left-1  bottom-0.5 h-4 w-4 rounded-full bg-white \
+  transition-transform duration-300 pointer-events-none";
+
+  slider.className =
+  "absolute inset-0 p-1 flex items-center justify-start cursor-pointer rounded-full bg-gray-300 transition-colors duration-300 ";
+
+
   child.className = "flex gap-2 items-center";
-  div.className = "group hoverable flex gap-2 flex-col items-center justify-around";
+  div.className = "group hoverable flex gap-2 flex-col items-center justify-around py-2";
   div.appendChild(child);
 
   const board = document.createElement("div");
@@ -129,7 +146,6 @@ function injectExtensionUI(aside, history) {
           successCount++;
           await new Promise(resolve => setTimeout(resolve, 200));
 
-
         } catch (error) {
           console.error(`Failed to delete ${id}:`, error);
           failCount++;
@@ -177,7 +193,7 @@ function injectExtensionUI(aside, history) {
         try {
           await customFetch("archive", id);
           successCount++;
-          await new Promise(resolve => setTimeout(resolve, 200));
+          // await new Promise(resolve => setTimeout(resolve, 200));
         } catch (error) {
           console.error(`Failed to archive ${id}:`, error);
           failCount++;
@@ -207,6 +223,10 @@ function injectExtensionUI(aside, history) {
     if (toggleExtension.checked) {
       selectAllWrapper.style.display = "flex";
       board.classList.remove("hidden")
+      slider.classList.remove("bg-gray-300")
+      slider.classList.remove("justify-start")
+      slider.classList.add("bg-blue-500")
+      slider.classList.add("justify-end")
       board.classList.add("flex")
       conversations.forEach(conv => {
         addCheckboxToConversation(conv);
@@ -215,15 +235,19 @@ function injectExtensionUI(aside, history) {
       selectAllWrapper.style.display = "none";
       selectAll.checked = false;
       extensionState.checkAll = false;
+      board.classList.remove("flex")
+      board.classList.add("hidden")
+      slider.classList.remove("justify-end")
+      board.classList.add("justify-start")
+      slider.classList.add("bg-gray-300")
+      slider.classList.remove("bg-blue-500")
+    }
       conversations.forEach(conv => {
         removeCheckboxFromConversation(conv);
       });
       extensionState.convList = [];
       extensionState.selectedNum = 0;
       screen.textContent = "0 conversation(s) selected";
-      board.classList.remove("flex")
-      board.classList.add("hidden")
-    }
   });
 
   selectAll.addEventListener("change", () => {
