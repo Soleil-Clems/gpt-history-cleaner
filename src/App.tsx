@@ -1,6 +1,6 @@
 function App() {
   return (
-    <div className="w-[320px] p-6 bg-gradient-to-br from-indigo-50 to-purple-50">
+    <div className="w-[320px] p-6 bg-linear-to-br from-indigo-50 to-purple-50">
 
       <div className="flex items-center gap-3 mb-6">
         <img 
