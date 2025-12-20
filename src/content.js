@@ -125,6 +125,7 @@ function injectExtensionUI(aside, history) {
   extensionState.extensionUI = div;
   extensionState.isInjected = true;
 
+  // ============= OPTIMISATION MAJEURE ICI =============
   deleteBtn.addEventListener("click", async () => {
     if (extensionState.convList.length === 0) {
       return;
@@ -136,39 +137,39 @@ function injectExtensionUI(aside, history) {
       return;
     }
 
-
     deleteBtn.disabled = true;
+    archiveBtn.disabled = true;
     const originalText = deleteBtn.textContent;
     deleteBtn.textContent = "Deleting...";
 
     try {
-      let successCount = 0;
-      let failCount = 0;
+      const results = await Promise.allSettled(
+        validIds.map(id => customFetch("delete", id))
+      );
 
-      for (const id of validIds) {
-        try {
-          await customFetch("delete", id);
-          successCount++;
+      const successCount = results.filter(r => r.status === 'fulfilled').length;
+      const failCount = results.filter(r => r.status === 'rejected').length;
 
-        } catch (error) {
-          console.error(`Failed to delete ${id}:`, error);
-          failCount++;
-        }
+
+      if (failCount > 0) {
+        const errors = results
+          .filter(r => r.status === 'rejected')
+          .map(r => r.reason?.message || 'Unknown error');
+        console.error('Failed deletes:', errors);
       }
-
 
       extensionState.convList = [];
       extensionState.selectedNum = 0;
       screen.textContent = "0 conversation(s) selected";
 
+      setTimeout(() => window.location.reload(), 500);
+
     } catch (error) {
       console.error("Delete operation failed:", error);
       alert("Operation failed. Check console for details.");
-    } finally {
       deleteBtn.disabled = false;
+      archiveBtn.disabled = false;
       deleteBtn.textContent = originalText;
-
-      window.location.reload();
     }
   });
 
@@ -183,36 +184,39 @@ function injectExtensionUI(aside, history) {
       return;
     }
 
-    // confirm
-
     archiveBtn.disabled = true;
+    deleteBtn.disabled = true;
     const originalText = archiveBtn.textContent;
     archiveBtn.textContent = "Archiving...";
 
     try {
-      let successCount = 0;
-      let failCount = 0;
+      // PARALLÉLISATION : toutes les requêtes partent en même temps
+      const results = await Promise.allSettled(
+        validIds.map(id => customFetch("archive", id))
+      );
 
-      for (const id of validIds) {
-        try {
-          await customFetch("archive", id);
-          successCount++;
-        } catch (error) {
-          console.error(`Failed to archive ${id}:`, error);
-          failCount++;
-        }
+      const successCount = results.filter(r => r.status === 'fulfilled').length;
+      const failCount = results.filter(r => r.status === 'rejected').length;
+
+
+      if (failCount > 0) {
+        const errors = results
+          .filter(r => r.status === 'rejected')
+          .map(r => r.reason?.message || 'Unknown error');
+        console.error('Failed archives:', errors);
       }
 
       extensionState.convList = [];
       extensionState.selectedNum = 0;
       screen.textContent = "0 conversation(s) selected";
-      location.reload();
+      
+      setTimeout(() => window.location.reload(), 500);
 
     } catch (error) {
       console.error("Archive operation failed:", error);
       alert("Operation failed. Check console for details.");
-    } finally {
       archiveBtn.disabled = false;
+      deleteBtn.disabled = false;
       archiveBtn.textContent = originalText;
     }
   });
@@ -285,7 +289,6 @@ function injectExtensionUI(aside, history) {
 
     extensionState.selectedNum = extensionState.convList.length;
     screen.textContent = extensionState.selectedNum + " conversation(s) selected";
-    console.log("Select All:", selectAll.checked, "Valid IDs:", extensionState.convList);
   });
 
   function handleConversationClick(e) {
@@ -315,7 +318,6 @@ function injectExtensionUI(aside, history) {
       }
     }
 
-    console.log("Selected conversations:", extensionState.convList);
     extensionState.selectedNum = extensionState.convList.length;
     screen.textContent = extensionState.selectedNum + " conversation(s) selected";
   }
@@ -408,7 +410,6 @@ function addCheckboxesToNewConversations(history) {
           }
         }
 
-        console.log("Selected conversations:", extensionState.convList);
         extensionState.selectedNum = extensionState.convList.length;
 
         const screenEl = document.querySelector("p.text-xs.text-gray-500");
@@ -422,7 +423,6 @@ function addCheckboxesToNewConversations(history) {
 
 function getConvId(url) {
   if (!url || typeof url !== 'string') {
-    console.warn('[GPT History Cleaner] Invalid URL type:', typeof url, url);
     return null;
   }
 
@@ -430,7 +430,6 @@ function getConvId(url) {
   const id = parts[parts.length - 1];
 
   if (!id || id === '' || id.includes('[object') || id.includes('Promise') || id === 'undefined' || id === 'null') {
-    console.warn('[GPT History Cleaner] Invalid conversation ID extracted:', id, 'from URL:', url);
     return null;
   }
 
@@ -438,7 +437,6 @@ function getConvId(url) {
 }
 
 function customFetch(action, id) {
-  console.log(`[GPT History Cleaner] customFetch called with action=${action}, id=${id} (type: ${typeof id})`);
 
   if (!id || typeof id !== 'string') {
     return Promise.reject(new Error(`Invalid ID: ${id} (type: ${typeof id})`));
@@ -459,7 +457,7 @@ function customFetch(action, id) {
         }
 
         if (response && response.success) {
-          console.log(`${action} success for ${id}`);
+    
           resolve();
         } else {
           console.error(`${action} failed:`, response ? response.error : "No response");
