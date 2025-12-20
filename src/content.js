@@ -13,7 +13,7 @@ window.addEventListener("load", () => {
 
 function observer() {
   const observer = new MutationObserver(() => {
-    const aside = document.querySelector("nav aside");
+    const aside = document.querySelector("nav a[data-testid='create-new-chat-button']");
     const history = document.querySelector("#history");
 
     if (!history || !aside) return;
@@ -44,21 +44,44 @@ function injectExtensionUI(aside, history) {
 
   const img = document.createElement("img");
   img.src = chrome.runtime.getURL("logo.png");
-  img.style.width = "20px";
-  img.style.height = "20px";
+  img.className="w-full h-full"
+  const imgParent = document.createElement("a");
+  imgParent.href="https://soleil-ouisol.fr/"
+  imgParent.alt="owner: Soleil OUISOL"
+  imgParent.target="_blank"
+  imgParent.className="w-8 h-8 rounded-full overflow-hidden object-cover cursor-pointer"
+
 
   const text = document.createTextNode("GPT history cleaner");
 
   const toggleExtension = document.createElement("input");
+  const label = document.createElement("label");
+  const slider = document.createElement("span");
+  const knob = document.createElement("span");
+  slider.appendChild(knob);
   toggleExtension.type = "checkbox";
   toggleExtension.name = "toggle";
   toggleExtension.style.marginRight = "8px";
 
-  child.appendChild(img);
+  imgParent.appendChild(img);
+  child.appendChild(imgParent);
   child.appendChild(text);
-  child.appendChild(toggleExtension);
+  label.appendChild(toggleExtension)
+  label.appendChild(slider)
+  child.appendChild(label);
+  label.className = "relative inline-block w-10 h-5";
+  toggleExtension.className = "peer absolute opacity-0 w-0 h-0"
+
+  knob.className =
+  "absolute left-1  bottom-0.5 h-4 w-4 rounded-full bg-white \
+  transition-transform duration-300 pointer-events-none";
+
+  slider.className =
+  "absolute inset-0 p-1 flex items-center justify-start cursor-pointer rounded-full bg-gray-300 transition-colors duration-300 ";
+
+
   child.className = "flex gap-2 items-center";
-  div.className = "group hoverable flex gap-2 flex-col items-center justify-around";
+  div.className = "group hoverable flex gap-2 flex-col items-center justify-around py-2";
   div.appendChild(child);
 
   const board = document.createElement("div");
@@ -102,6 +125,7 @@ function injectExtensionUI(aside, history) {
   extensionState.extensionUI = div;
   extensionState.isInjected = true;
 
+  // ============= OPTIMISATION MAJEURE ICI =============
   deleteBtn.addEventListener("click", async () => {
     if (extensionState.convList.length === 0) {
       return;
@@ -113,42 +137,39 @@ function injectExtensionUI(aside, history) {
       return;
     }
 
-    // confirm
-
     deleteBtn.disabled = true;
+    archiveBtn.disabled = true;
     const originalText = deleteBtn.textContent;
     deleteBtn.textContent = "Deleting...";
 
     try {
-      let successCount = 0;
-      let failCount = 0;
+      const results = await Promise.allSettled(
+        validIds.map(id => customFetch("delete", id))
+      );
 
-      for (const id of validIds) {
-        try {
-          await customFetch("delete", id);
-          successCount++;
-          await new Promise(resolve => setTimeout(resolve, 200));
+      const successCount = results.filter(r => r.status === 'fulfilled').length;
+      const failCount = results.filter(r => r.status === 'rejected').length;
 
 
-        } catch (error) {
-          console.error(`Failed to delete ${id}:`, error);
-          failCount++;
-        }
+      if (failCount > 0) {
+        const errors = results
+          .filter(r => r.status === 'rejected')
+          .map(r => r.reason?.message || 'Unknown error');
+        console.error('Failed deletes:', errors);
       }
-
 
       extensionState.convList = [];
       extensionState.selectedNum = 0;
       screen.textContent = "0 conversation(s) selected";
 
+      setTimeout(() => window.location.reload(), 500);
+
     } catch (error) {
       console.error("Delete operation failed:", error);
       alert("Operation failed. Check console for details.");
-    } finally {
       deleteBtn.disabled = false;
+      archiveBtn.disabled = false;
       deleteBtn.textContent = originalText;
-
-      window.location.reload();
     }
   });
 
@@ -163,39 +184,39 @@ function injectExtensionUI(aside, history) {
       return;
     }
 
-    // confirm
-
     archiveBtn.disabled = true;
+    deleteBtn.disabled = true;
     const originalText = archiveBtn.textContent;
     archiveBtn.textContent = "Archiving...";
 
     try {
-      let successCount = 0;
-      let failCount = 0;
+      // PARALLÉLISATION : toutes les requêtes partent en même temps
+      const results = await Promise.allSettled(
+        validIds.map(id => customFetch("archive", id))
+      );
 
-      for (const id of validIds) {
-        try {
-          await customFetch("archive", id);
-          successCount++;
-          await new Promise(resolve => setTimeout(resolve, 200));
-        } catch (error) {
-          console.error(`Failed to archive ${id}:`, error);
-          failCount++;
-        }
+      const successCount = results.filter(r => r.status === 'fulfilled').length;
+      const failCount = results.filter(r => r.status === 'rejected').length;
+
+
+      if (failCount > 0) {
+        const errors = results
+          .filter(r => r.status === 'rejected')
+          .map(r => r.reason?.message || 'Unknown error');
+        console.error('Failed archives:', errors);
       }
-
-      // alert(`✓ ${successCount} archived${failCount > 0 ? `, ${failCount} failed` : ''}`);
 
       extensionState.convList = [];
       extensionState.selectedNum = 0;
       screen.textContent = "0 conversation(s) selected";
-      location.reload();
+      
+      setTimeout(() => window.location.reload(), 500);
 
     } catch (error) {
       console.error("Archive operation failed:", error);
       alert("Operation failed. Check console for details.");
-    } finally {
       archiveBtn.disabled = false;
+      deleteBtn.disabled = false;
       archiveBtn.textContent = originalText;
     }
   });
@@ -207,6 +228,10 @@ function injectExtensionUI(aside, history) {
     if (toggleExtension.checked) {
       selectAllWrapper.style.display = "flex";
       board.classList.remove("hidden")
+      slider.classList.remove("bg-gray-300")
+      slider.classList.remove("justify-start")
+      slider.classList.add("bg-blue-500")
+      slider.classList.add("justify-end")
       board.classList.add("flex")
       conversations.forEach(conv => {
         addCheckboxToConversation(conv);
@@ -215,15 +240,19 @@ function injectExtensionUI(aside, history) {
       selectAllWrapper.style.display = "none";
       selectAll.checked = false;
       extensionState.checkAll = false;
+      board.classList.remove("flex")
+      board.classList.add("hidden")
+      slider.classList.remove("justify-end")
+      board.classList.add("justify-start")
+      slider.classList.add("bg-gray-300")
+      slider.classList.remove("bg-blue-500")
+    }
       conversations.forEach(conv => {
         removeCheckboxFromConversation(conv);
       });
       extensionState.convList = [];
       extensionState.selectedNum = 0;
       screen.textContent = "0 conversation(s) selected";
-      board.classList.remove("flex")
-      board.classList.add("hidden")
-    }
   });
 
   selectAll.addEventListener("change", () => {
@@ -260,7 +289,6 @@ function injectExtensionUI(aside, history) {
 
     extensionState.selectedNum = extensionState.convList.length;
     screen.textContent = extensionState.selectedNum + " conversation(s) selected";
-    console.log("Select All:", selectAll.checked, "Valid IDs:", extensionState.convList);
   });
 
   function handleConversationClick(e) {
@@ -290,7 +318,6 @@ function injectExtensionUI(aside, history) {
       }
     }
 
-    console.log("Selected conversations:", extensionState.convList);
     extensionState.selectedNum = extensionState.convList.length;
     screen.textContent = extensionState.selectedNum + " conversation(s) selected";
   }
@@ -383,7 +410,6 @@ function addCheckboxesToNewConversations(history) {
           }
         }
 
-        console.log("Selected conversations:", extensionState.convList);
         extensionState.selectedNum = extensionState.convList.length;
 
         const screenEl = document.querySelector("p.text-xs.text-gray-500");
@@ -397,7 +423,6 @@ function addCheckboxesToNewConversations(history) {
 
 function getConvId(url) {
   if (!url || typeof url !== 'string') {
-    console.warn('[GPT History Cleaner] Invalid URL type:', typeof url, url);
     return null;
   }
 
@@ -405,7 +430,6 @@ function getConvId(url) {
   const id = parts[parts.length - 1];
 
   if (!id || id === '' || id.includes('[object') || id.includes('Promise') || id === 'undefined' || id === 'null') {
-    console.warn('[GPT History Cleaner] Invalid conversation ID extracted:', id, 'from URL:', url);
     return null;
   }
 
@@ -413,7 +437,6 @@ function getConvId(url) {
 }
 
 function customFetch(action, id) {
-  console.log(`[GPT History Cleaner] customFetch called with action=${action}, id=${id} (type: ${typeof id})`);
 
   if (!id || typeof id !== 'string') {
     return Promise.reject(new Error(`Invalid ID: ${id} (type: ${typeof id})`));
@@ -434,7 +457,7 @@ function customFetch(action, id) {
         }
 
         if (response && response.success) {
-          console.log(`${action} success for ${id}`);
+    
           resolve();
         } else {
           console.error(`${action} failed:`, response ? response.error : "No response");
