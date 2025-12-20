@@ -130,7 +130,6 @@ function injectExtensionUI(aside, history) {
       return;
     }
 
-    // confirm
 
     deleteBtn.disabled = true;
     const originalText = deleteBtn.textContent;
@@ -144,7 +143,7 @@ function injectExtensionUI(aside, history) {
         try {
           await customFetch("delete", id);
           successCount++;
-          await new Promise(resolve => setTimeout(resolve, 200));
+          // await new Promise(resolve => setTimeout(resolve, 200));
 
         } catch (error) {
           console.error(`Failed to delete ${id}:`, error);
@@ -193,14 +192,12 @@ function injectExtensionUI(aside, history) {
         try {
           await customFetch("archive", id);
           successCount++;
-          // await new Promise(resolve => setTimeout(resolve, 200));
+          await new Promise(resolve => setTimeout(resolve, 200));
         } catch (error) {
           console.error(`Failed to archive ${id}:`, error);
           failCount++;
         }
       }
-
-      // alert(`✓ ${successCount} archived${failCount > 0 ? `, ${failCount} failed` : ''}`);
 
       extensionState.convList = [];
       extensionState.selectedNum = 0;
