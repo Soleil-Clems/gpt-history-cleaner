@@ -117,6 +117,13 @@ Many similar extensions exist, but most of them:
 
 ## 📝 Changelog
 
+### v1.1.0 (2026-10-25)
+- 🔧 Compatible with the new ChatGPT sidebar
+- ⚡ Faster bulk delete/archive
+- ⚠️ Confirmation dialog before deleting
+- 🎨 Redesigned action buttons with a loading state
+- 🐛 Fixed conversations sometimes not getting selected on click
+
 ### v1.0.0 (2024-12-XX)
 - 🎉 Initial release
 - ✅ Bulk delete conversations
