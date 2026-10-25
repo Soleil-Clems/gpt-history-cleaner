@@ -1,7 +1,7 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === "GPT_HISTORY_ACTION") {
-    handleAction(request.action, request.id, sender.tab?.id || null)
-      .then(() => sendResponse({ success: true }))
+    handleAction(request.action, request.ids, sender.tab?.id || null)
+      .then(result => sendResponse({ success: true, failed: result.failed }))
       .catch(error => {
         console.error('[GPT History Cleaner] Error:', error);
         sendResponse({ success: false, error: error.message });
@@ -11,7 +11,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-async function handleAction(action, conversationId, tabId) {
+async function handleAction(action, conversationIds, tabId) {
   if (!tabId) {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tabs || !tabs[0]) {
@@ -24,7 +24,7 @@ async function handleAction(action, conversationId, tabId) {
     target: { tabId },
     world: "MAIN",
     func: performAction,
-    args: [action, conversationId]
+    args: [action, conversationIds]
   });
 
   if (result?.[0]?.result?.success) {
@@ -34,7 +34,7 @@ async function handleAction(action, conversationId, tabId) {
   throw new Error(result?.[0]?.result?.error || "Action failed");
 }
 
-async function performAction(action, id) {
+async function performAction(action, ids) {
   try {
     const getCookie = (name) => {
       const value = `; ${document.cookie}`;
@@ -64,29 +64,51 @@ async function performAction(action, id) {
       ? { is_visible: false }
       : { is_archived: true };
 
-    const patchResponse = await fetch(
-      `https://chatgpt.com/backend-api/conversation/${id}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-          "oai-device-id": deviceId,
-          "oai-language": navigator.language || "en-US"
-        },
-        body: JSON.stringify(body),
-        credentials: "include"
-      }
-    );
+    const patchConversation = async (id) => {
+      const patchResponse = await fetch(
+        `https://chatgpt.com/backend-api/conversation/${id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+            "oai-device-id": deviceId,
+            "oai-language": navigator.language || "en-US"
+          },
+          body: JSON.stringify(body),
+          credentials: "include"
+        }
+      );
 
-    if (!patchResponse.ok) {
-      const errorText = await patchResponse.text();
-      throw new Error(`HTTP ${patchResponse.status}: ${errorText}`);
+      if (!patchResponse.ok) {
+        const errorText = await patchResponse.text();
+        throw new Error(`HTTP ${patchResponse.status}: ${errorText}`);
+      }
+    };
+
+    // Limited concurrency: fast, without tripping ChatGPT's rate limit (HTTP 429)
+    const CONCURRENCY = 5;
+    const queue = [...ids];
+    const failed = [];
+
+    const worker = async () => {
+      while (queue.length > 0) {
+        const id = queue.shift();
+        try {
+          await patchConversation(id);
+        } catch (error) {
+          failed.push({ id, error: error.message });
+        }
+      }
+    };
+
+    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, ids.length) }, worker));
+
+    if (failed.length === ids.length) {
+      throw new Error(failed[0].error);
     }
 
-    const data = await patchResponse.json();
-
-    return { success: true, status: patchResponse.status, data };
+    return { success: true, failed };
 
   } catch (error) {
     console.error(`[GPT History Cleaner] ${action} failed:`, error);
